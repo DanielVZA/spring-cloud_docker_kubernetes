@@ -1,0 +1,81 @@
+version: "3.9"
+
+services:
+  msvc-usuarios:
+    container_name: msvc-usuarios
+    image: danielvza/usuarios:latest
+#    build:
+#      context: ./
+#      dockerfile: ./msvc-usuarios/Dockerfile
+    ports:
+      - 8001:8001
+    environment:
+      PORT: 8001
+      DB_HOST: mysqldb
+      DB_PORT: 3306
+      DB_DATABASE: msvc_usuarios
+      DB_USER: root
+      DB_PASSWORD: root
+      CURSOS_URL: msvc-cursos:8002
+    networks:
+      - spring
+    depends_on:
+      - mysqldb
+
+  msvc-cursos:
+    container_name: msvc-cursos
+    image: danielvza/cursos:latest
+#    build:
+#      context: ./
+#      dockerfile: ./msvc-cursos/Dockerfile
+    ports:
+      - 8002:8002
+    environment:
+      PORT: 8002
+      DB_HOST: postgresdb
+      DB_PORT: 5432
+      DB_DATABASE: msvc_cursos
+      DB_USER: postgres
+      DB_PASSWORD: root
+      USUARIOS_URL: msvc-usuarios:8001
+    networks:
+      - spring
+    depends_on:
+      - postgresdb
+      - msvc-usuarios
+
+  mysqldb:
+    container_name: mysqldb
+    image: mysql:8.0.28
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: msvc_usuarios
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - data-mysql:/var/lib/mysql
+    networks:
+      - spring
+
+  postgresdb:
+    container_name: postgresdb
+    image: postgres:14-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: msvc_cursos
+      POSTGRES_PASSWORD: root
+    volumes:
+      - data-postgres:/var/lib/postgresql/data
+    networks:
+      - spring
+
+volumes:
+  data-mysql:
+    name: data-mysql
+  data-postgres:
+    name: data-postgres
+
+networks:
+  spring:
+    name: spring

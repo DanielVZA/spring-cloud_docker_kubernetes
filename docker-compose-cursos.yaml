@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  msvc_cursos:
+    container_name: cursos
+    image: danielvza/cursos:latest
+#    build:
+#      context: ./
+#      dockerfile: ./msvc-cursos/Dockerfile
+    ports:
+      - 8002:8002
+    env_file:
+      - ./msvc-cursos/.env
+    networks:
+      - spring
+    depends_on:
+      - postgresdb
+      - msvc_usuarios
+
+  postgresdb:
+    container_name: postgresdb
+    image: postgres:14-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: msvc_cursos
+      POSTGRES_PASSWORD: root
+    volumes:
+      - data-postgres:/var/lib/postgresql/data
+    networks:
+      - spring
+
+volumes:
+  data-postgres:
+    name: data-postgres
+
+networks:
+  spring:
+    name: spring
