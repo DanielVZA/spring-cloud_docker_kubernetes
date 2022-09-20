@@ -8,6 +8,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +27,9 @@ public class UsuarioController {
     @Autowired
     private Environment env;
 
+    @Autowired
+    BCryptPasswordEncoder passwordEncoder;
+
     @GetMapping("/crash")
     public void crash() {
         ((ConfigurableApplicationContext) applicationContext).close();
@@ -35,7 +39,7 @@ public class UsuarioController {
     public ResponseEntity<?> findAll() {
         Map<String, Object> response = new HashMap<>();
         response.put("usuarios", usuarioService.findAll());
-        response.put("podinfo", env.getProperty("MY_POD_NAME")+" " + env.getProperty("MY_POD_IP"));
+        response.put("podinfo", env.getProperty("MY_POD_NAME") + " " + env.getProperty("MY_POD_IP"));
         response.put("text", env.getProperty("config.texto"));
 
 //        return Collections.singletonMap("users", usuarioService.findAll());
@@ -61,6 +65,8 @@ public class UsuarioController {
         if (!usuario.getEmail().isBlank() && usuarioService.existByEmail(usuario.getEmail())) {
             return ResponseEntity.badRequest().body(Collections.singletonMap("mensaje", "Ya existe un usuario registrado con email ingresado"));
         }
+
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.save(usuario));
     }
 
@@ -81,6 +87,7 @@ public class UsuarioController {
             usuarioDb.setNombre(usuario.getNombre());
             usuarioDb.setEmail(usuario.getEmail());
             usuarioDb.setPassword(usuario.getPassword());
+            usuarioDb.setPassword(passwordEncoder.encode(usuario.getPassword()));
 
             return ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.save(usuarioDb));
         }
@@ -104,9 +111,15 @@ public class UsuarioController {
         return ResponseEntity.ok().body(usuarioService.findAllByIds(ids));
     }
 
+    @GetMapping("/authorized")
+    public Map<String, Object> authorized(@RequestParam(name = "code") String code) {
+        return Collections.singletonMap("code", code);
+    }
+
     private static ResponseEntity<Map<String, String>> validar(BindingResult result) {
         Map<String, String> errores = new HashMap<>();
         result.getFieldErrors().forEach(err -> errores.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage()));
         return ResponseEntity.badRequest().body(errores);
     }
+
 }

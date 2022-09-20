@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: msvc-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: msvc-auth
+  template:
+    metadata:
+      labels:
+        app: msvc-auth
+    spec:
+      containers:
+        - image: danielvza/auth:latest
+          name: auth
+          ports:
+            - containerPort: 9000
+          env:
+            - name: LB_USUARIOS_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: msvc-usuarios
+                  key: lb_usuarios_uri
