@@ -14,3 +14,9 @@ spring:
             - Path=/api/usuarios/**
           filters:
             - StripPrefix=2
+        - id: msvc-usuarios
+          uri: lb://msvc-auth
+          predicates:
+            - Path=/**
+          filters:
+            - StripPrefix=0

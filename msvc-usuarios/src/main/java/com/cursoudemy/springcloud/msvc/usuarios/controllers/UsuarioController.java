@@ -116,10 +116,19 @@ public class UsuarioController {
         return Collections.singletonMap("code", code);
     }
 
+    @GetMapping("/login")
+    public ResponseEntity<?> loginByEmail(@RequestParam String email) {
+        Optional<Usuario> o = usuarioService.findByEmail(email);
+        if (o.isPresent()) {
+            return ResponseEntity.ok(o.get());
+        }
+
+        return ResponseEntity.notFound().build();
+    }
+
     private static ResponseEntity<Map<String, String>> validar(BindingResult result) {
         Map<String, String> errores = new HashMap<>();
         result.getFieldErrors().forEach(err -> errores.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage()));
         return ResponseEntity.badRequest().body(errores);
     }
-
 }

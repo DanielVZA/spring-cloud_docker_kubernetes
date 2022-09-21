@@ -24,8 +24,8 @@ public class CursoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> findById(@PathVariable Long id) {
-        Optional<Curso> o = cursoService.findByIdWithUsers(id);
+    public ResponseEntity<?> findById(@PathVariable Long id, @RequestHeader(value = "Authorization", required = true) String token) {
+        Optional<Curso> o = cursoService.findByIdWithUsers(id, token);
         if (o.isPresent()) {
             return ResponseEntity.ok(o.get());
         }
@@ -72,10 +72,10 @@ public class CursoController {
     }
 
     @PutMapping("/asignar-usuario/{cursoId}")
-    public ResponseEntity<?> asignarUsuario(@RequestBody Usuario usuario, @PathVariable Long cursoId) {
+    public ResponseEntity<?> asignarUsuario(@RequestBody Usuario usuario, @PathVariable Long cursoId, @RequestHeader(value = "Authorization", required = true) String token) {
         Optional<Usuario> o;
         try {
-            o = cursoService.asignarUsuario(usuario, cursoId);
+            o = cursoService.asignarUsuario(usuario, cursoId, token);
         } catch (FeignException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap(
                     "mensaje", "No existe el usuario o error en la comunicacion: " + e.getMessage()
@@ -90,10 +90,10 @@ public class CursoController {
     }
 
     @PostMapping("/crear-usuario/{cursoId}")
-    public ResponseEntity<?> crearUsuario(@RequestBody Usuario usuario, @PathVariable Long cursoId) {
+    public ResponseEntity<?> crearUsuario(@RequestBody Usuario usuario, @PathVariable Long cursoId, @RequestHeader(value = "Authorization", required = true) String token) {
         Optional<Usuario> o;
         try {
-            o = cursoService.crearUsuario(usuario, cursoId);
+            o = cursoService.crearUsuario(usuario, cursoId, token);
         } catch (FeignException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap(
                     "mensaje", "No se pudo crear el usuario o error en la comunicacion: " + e.getMessage()
@@ -108,10 +108,10 @@ public class CursoController {
     }
 
     @DeleteMapping("/quitar-usuario/{cursoId}")
-    public ResponseEntity<?> quitarUsuario(@RequestBody Usuario usuario, @PathVariable Long cursoId) {
+    public ResponseEntity<?> quitarUsuario(@RequestBody Usuario usuario, @PathVariable Long cursoId, @RequestHeader(value = "Authorization", required = true) String token) {
         Optional<Usuario> o;
         try {
-            o = cursoService.quitarUsuario(usuario, cursoId);
+            o = cursoService.quitarUsuario(usuario, cursoId, token);
         } catch (FeignException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap(
                     "mensaje", "No se pudo eliminar el usuario o error en la comunicacion: " + e.getMessage()
@@ -130,6 +130,7 @@ public class CursoController {
         cursoService.elminarCursoUsuarioPorId(id);
         return ResponseEntity.noContent().build();
     }
+
     private static ResponseEntity<Map<String, String>> validar(BindingResult result) {
         Map<String, String> errores = new HashMap<>();
         result.getFieldErrors().forEach(err -> errores.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage()));
